@@ -1,4 +1,4 @@
-ORIGIN,DEST,CARRIER_DELAY
+origin,destination,count
 ABQ,ATL,67
 ABQ,AUS,92
 ABQ,BWI,98
