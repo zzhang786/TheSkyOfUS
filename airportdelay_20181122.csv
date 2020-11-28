@@ -1,4 +1,4 @@
-iata,lat,lon,arrsum,arrcount,depsum,depcount,delaysum,delaycount,time
+iata,latitude,longitude,arrsum,arrcount,depsum,depcount,delaysum,delaycount,time
 ATL,33.6367,-84.428101,0.0,0.0,0.0,0.0,0.0,0.0,0
 LAX,33.94250107,-118.40799709999999,44.0,1.0,58.0,5.0,102.0,6.0,0
 ORD,41.9786,-87.9048,0.0,0.0,0.0,0.0,0.0,0.0,0
