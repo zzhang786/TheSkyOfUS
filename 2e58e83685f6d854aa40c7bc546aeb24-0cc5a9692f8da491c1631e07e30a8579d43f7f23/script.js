@@ -9,7 +9,7 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   flights:
-    "https://gist.githubusercontent.com/mbostock/7608400/raw/e5974d9bba45bc9ab272d98dd7427567aafd55bc/flights.csv"
+    "/data/flights_by_dela.csv"
 };
 
 const svg  = d3.select("svg");
