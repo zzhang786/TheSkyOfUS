@@ -3,40 +3,36 @@
 <head>
   <meta charset="utf-8">
   <title>Flight Paths using Edge Bundling</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+          integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+          integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+          crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+          integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+          crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://unpkg.com/topojson@3"></script>
-
+  <script src="https://unpkg.com/vue@next"></script>
   <script src="https://unpkg.com/d3-delaunay@4"></script>
   <script src="https://unpkg.com/d3-geo-voronoi@1"></script>
-<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css"
+        rel="stylesheet">
+  <script
+    src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"></script>
   <link href="style.css" rel="stylesheet">
-
-  <script type="text/javascript">
-          $(document).ready(function() {
-
-            const $valueSpan = $('.valueSpan');
-            const $value = $('#customRange');
-            $valueSpan.html($value.val());
-            $value.on('input change', () => {
-
-              $valueSpan.html($value.val());
-            });
-          });
-        </script>
 </head>
 
 <body data-new-gr-c-s-loaded="true">
-<div class="container-fluid p-5">
+<div id="app" class="container-fluid p-5">
   <div class="row">
-        
+
     <div class="col-8 pl-5">
-      <div class="l_col h-80 d-inline-block">  
-<!-- must be 960x600 to match topojson us atlas files -->
+      <div class="l_col h-80 d-inline-block">
+        <!-- must be 960x600 to match topojson us atlas files -->
         <svg width="960px" height="600px"><!-- width="960" height="600"-->
           <!-- must be in this order for drawing -->
           <g id="basemap"></g>
@@ -49,25 +45,27 @@
       <div class="l_col w-100 h-20 d-inline-block">
         <div class="d-flex justify-content-center my-4">
           <h5 class='p-3'>Year: </h5>
-          <input type="range" class="custom-range" id="customRange" min="2009" max="2018">
-          <span class="font-weight-bold text-primary ml-2 valueSpan" ></span>
+          <input type="range" v-model="currentYear" class="custom-range" id="customRange" min="2009" max="2018">
+          <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentYear}}</span>
           <h5 class='p-3 time'>Time: </h5>
-          <input type="range" class="custom-range" id="customRange" min="0000" max="2400">
-          <span class="font-weight-bold text-primary ml-2 valueSpan" ></span>
+          <input type="range" v-model="currentTime" class="custom-range" id="customRange" min="0" max="24">
+          <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentTime}}</span>
         </div>
-        
+
       </div>
     </div>
 
     <div class="col-3 text-center pr-5">
       <div class="r_col h-20 p-2" id='display'>
-        <form action="" method="get"> 
+        <form action="" method="get">
           <h5>Choose display layers:</h5>
-          <label class='p-1'><input class='p-1' name="D" type="checkbox" value="" />Line </label> 
-          <label class='p-1'><input class='p-1' name="D" type="checkbox" value="" />Airplane </label> 
-          <label class='p-1'><input class='p-1' name="D" type="checkbox" value="" />Airport </label> 
-          </form> 
-        
+          <label class='p-1'><input class='p-1' name="D" type="checkbox" v-model="isLineShow" value=""/>Line </label>
+          <label class='p-1'><input class='p-1' name="D" type="checkbox" v-model="isAirplaneShow" value=""/>Airplane
+          </label>
+          <label class='p-1'><input class='p-1' name="D" type="checkbox" v-model="isAirportShow" value=""/>Airport
+          </label>
+        </form>
+
       </div>
 
       <div class="r_col h-40  text-center p-2">
@@ -86,50 +84,124 @@
             data-offlabel="Arrival"
             data-onstyle="success"
             data-offstyle="info"
+            v-model="arrivalShow"
           />
         </div>
         <div class='h-70 w-100 p-2 block bd text-center'>
-          <label class="p-1"><input class="radio" type="radio" name="radio" checked> Delay Count</label>
-          <label class="p-1"><input class="radio" type="radio" name="radio"> Delay Time</label>
-        </div>   
+          <label class="p-1"><input class="radio" type="radio" name="isDelayCount" value="0" v-model="isDelayCount">
+            Delay Count</label>
+          <label class="p-1"><input class="radio" type="radio" name="isDelayCount" value="1" v-model="isDelayCount">
+            Delay Time</label>
+        </div>
       </div>
 
-       <div class="r_col h-40 p-2">
-        <div class="dropdown m-2">
-            <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">Departure Airport
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href="#">Java</a>
-                </li>
-            </ul>
-        </div>
+      <div class="r_col h-40 p-2">
+        Departure Airport<select v-model="selectedDepartureAirport" name="deptAirport" id="deptAirport">
+        <option
+          v-for="item in airports"
+          :value="item.iata"
+        >
+          {{item.name}}
+        </option>
+      </select>
+        Arrival Airport<select v-model="selectedArrivalAirport" name="deptAirport" id="deptAirport">
+        <option
+          v-for="item in airports"
+          :value="item.iata"
+        >
+          {{item.name}}
+        </option>
+      </select>
         <div class="dropdown  m-2">
-            <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">Arrival Airport
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href="#">Java</a>
-                </li>
-            </ul>
-        </div>
-        <div class="dropdown  m-2">
-            <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">Airplane Company
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href="#">Java</a>
-                </li>
-            </ul>
+          <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">Airplane Company
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+            <li role="presentation">
+              <a role="menuitem" tabindex="-1" href="#">Java</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 </div>
 <script src="script.js"></script>
+<script>
+var app = {
+  data () {
+    return {
+      currentYearData: 2020,
+      currentTimeData: 0,
+      hourData: 0,
+      isLineShow: true,
+      isAirplaneShow: true,
+      isAirportShow: true,
+      arrivalShow: true,
+      isDelayCount: '0',
+      airports: [],
+      airplaneCompany: [],
+      selectedDepartureAirport: null,
+      selectedArrivalAirport: null,
+    };
+  },
+  created () {
+    const promises = [
+      d3.csv(urls.airports, typeAirport),
+      d3.csv(urls.flights, typeFlight),
+    ];
 
+    Promise.all(promises).then((values) => {
+      let airports = values[0];
+      let flights = values[1];
+
+      this.airports = airports;
+    });
+  },
+  methods: {
+    test () {
+      // processData()
+    },
+    // generatePinyin () {
+    // fly.post('/generatePinyin', {
+    //   line: commitLine
+    // })
+    //   .then((response) => {
+    //     var pinyinList = response.data.res
+    //     this.pinyinContent = pinyinList.join('\n')
+    //   })
+    //   .catch(function (error) {
+    //     console.log(error);
+    //   });
+    // },
+    // },
+  },
+  computed: {
+    currentYear: {
+      get () {
+        return this.currentYearData;
+      },
+      set (newValue) {
+        this.currentYearData = Number(newValue);
+      },
+    },
+    currentTime: {
+      get () {
+        return this.currentTimeData;
+      },
+      set (newValue) {
+        this.currentTimeData = Number(newValue);
+      },
+    },
+  },
+  watch: {
+    arrivalShow () {
+    },
+    isDelayCount () {
+    },
+  },
+};
+Vue.createApp(app).mount('#app');
+</script>
 </body>
 </html>
