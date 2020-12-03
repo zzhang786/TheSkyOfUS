@@ -27,9 +27,8 @@
 </head>
 
 <body data-new-gr-c-s-loaded="true">
-<div id="app" class="container-fluid p-5">
+<div class="container-fluid p-5">
   <div class="row">
-
     <div class="col-8 pl-5">
       <div class="l_col h-80 d-inline-block">
         <!-- must be 960x600 to match topojson us atlas files -->
@@ -43,7 +42,7 @@
         </svg>
       </div>
       <div class="l_col w-100 h-20 d-inline-block">
-        <div class="d-flex justify-content-center my-4">
+        <div id="app1" class="d-flex justify-content-center my-4">
           <h5 class='p-3'>Year: </h5>
           <input type="range" v-model="currentYear" class="custom-range" id="customRange" min="2009" max="2018">
           <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentYear}}</span>
@@ -51,11 +50,10 @@
           <input type="range" v-model="currentTime" class="custom-range" id="customRange" min="0" max="24">
           <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentTime}}</span>
         </div>
-
       </div>
     </div>
 
-    <div class="col-3 text-center pr-5">
+    <div id="app2" class="col-3 text-center pr-5">
       <div class="r_col h-20 p-2" id='display'>
         <form action="" method="get">
           <h5>Choose display layers:</h5>
@@ -65,17 +63,11 @@
           <label class='p-1'><input class='p-1' name="D" type="checkbox" v-model="isAirportShow" value=""/>Airport
           </label>
         </form>
-
       </div>
 
       <div class="r_col h-40  text-center p-2">
         <h5>Select filter for airport</h5>
         <div class='h-30 w-100 p-1 block bd center-block'>
-          <!-- <input class="testswitch-checkbox" id="onoffswitch" type="checkbox">
-          <label class="testswitch-label" for="onoffswitch">
-            <span class="testswitch-inner" data-on="Dept." data-off="Arr."></span>
-            <span class="testswitch-switch"></span>
-          </label> -->
           <input
             class="center-block"
             type="checkbox"
@@ -128,11 +120,35 @@
 </div>
 <script src="script.js"></script>
 <script>
-var app = {
+var app1 = {
   data () {
     return {
       currentYearData: 2020,
       currentTimeData: 0,
+    };
+  },
+  computed: {
+    currentYear: {
+      get () {
+        return this.currentYearData;
+      },
+      set (newValue) {
+        this.currentYearData = Number(newValue);
+      },
+    },
+    currentTime: {
+      get () {
+        return this.currentTimeData;
+      },
+      set (newValue) {
+        this.currentTimeData = Number(newValue);
+      },
+    },
+  },
+};
+var app2 = {
+  data () {
+    return {
       hourData: 0,
       isLineShow: true,
       isAirplaneShow: true,
@@ -154,14 +170,10 @@ var app = {
     Promise.all(promises).then((values) => {
       let airports = values[0];
       let flights = values[1];
-
       this.airports = airports;
     });
   },
   methods: {
-    test () {
-      // processData()
-    },
     // generatePinyin () {
     // fly.post('/generatePinyin', {
     //   line: commitLine
@@ -177,22 +189,6 @@ var app = {
     // },
   },
   computed: {
-    currentYear: {
-      get () {
-        return this.currentYearData;
-      },
-      set (newValue) {
-        this.currentYearData = Number(newValue);
-      },
-    },
-    currentTime: {
-      get () {
-        return this.currentTimeData;
-      },
-      set (newValue) {
-        this.currentTimeData = Number(newValue);
-      },
-    },
   },
   watch: {
     arrivalShow () {
@@ -201,7 +197,8 @@ var app = {
     },
   },
 };
-Vue.createApp(app).mount('#app');
+Vue.createApp(app1).mount('#app1');
+Vue.createApp(app2).mount('#app2');
 </script>
 </body>
 </html>
