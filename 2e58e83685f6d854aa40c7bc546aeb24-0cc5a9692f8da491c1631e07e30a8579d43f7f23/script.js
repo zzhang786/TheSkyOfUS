@@ -5,8 +5,7 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   airports:
-    "https://gist.githubusercontent.com/mbostock/7608400/raw/e5974d9bba45bc9ab272d98dd7427567aafd55bc/airports.csv",
-
+    "/data/airportdelay.csv",
   // source: https://gist.github.com/mbostock/7608400
   flights:
     "/data/flights_by_dela.csv"
@@ -75,36 +74,13 @@ function processData(values) {
 
   // calculate incoming and outgoing degree based on flights
   // flights are given by airport iata code (not index)
-  flights.forEach(function(link) {
-    link.source = iata.get(link.origin);
-    link.target = iata.get(link.destination);
-
-    link.source.outgoing += link.count;
-    link.target.incoming += link.count;
-  });
-
-  // remove airports out of bounds
-  let old = airports.length;
-  airports = airports.filter(airport => airport.x >= 0 && airport.y >= 0);
-  console.log(" removed: " + (old - airports.length) + " airports out of bounds");
-
-  // remove airports with NA state
-  old = airports.length;
-  airports = airports.filter(airport => airport.state !== "NA");
-  console.log(" removed: " + (old - airports.length) + " airports with NA state");
-
-  // remove airports without any flights
-  old = airports.length;
-  airports = airports.filter(airport => airport.outgoing > 0 && airport.incoming > 0);
-  console.log(" removed: " + (old - airports.length) + " airports without flights");
-
-  // sort airports by outgoing degree
-  airports.sort((a, b) => d3.descending(a.outgoing, b.outgoing));
-
-  // keep only the top airports
-  old = airports.length;
-  airports = airports.slice(0, 50);
-  console.log(" removed: " + (old - airports.length) + " airports with low outgoing degree");
+  //******************************
+  //insert the user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  let selectedtime = 0;
+  let selectedyear = 2012;
+  airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
 
   // done filtering airports can draw
   drawAirports(airports);
@@ -388,8 +364,21 @@ function typeAirport(airport) {
   airport.x = coords[0];
   airport.y = coords[1];
 
-  airport.outgoing = 0;  // eventually tracks number of outgoing flights
-  airport.incoming = 0;  // eventually tracks number of incoming flights
+  //******************************************
+  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  let aord = 0;
+  let corl = 0;
+  if (aord == 0 && corl == 0){
+      airport.outgoing = parseInt(airport.arrcount);
+  }else if (aord == 1 && corl == 0){
+      airport.outgoing = parseInt(airport.depcount);
+  }else if (aord == 0 && corl == 1){
+      airport.outgoing = parseInt(airport.arrsum);
+  }else {
+      airport.outgoing = parseInt(airport.depsum);
+  }
 
   airport.flights = [];  // eventually tracks outgoing flights
 
