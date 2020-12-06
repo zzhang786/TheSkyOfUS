@@ -115,13 +115,13 @@ function processData(values) {
   //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (arrivalShow == false && isDelayCount == '0'){
-      airports.outgoing = parseInt(airports.arrcount);
+      airports.outgoing = airports.arrcount;
   }else if (arrivalShow == true && isDelayCount== '0'){
-      airports.outgoing = parseInt(airports.depcount);
+      airports.outgoing = airports.depcountparseInt(airports.depcount);
   }else if (arrivalShow == false && isDelayCount == '1'){
-      airports.outgoing = parseInt(airports.arrsum);
+      airports.outgoing = airports.arrsum;
   }else {
-      airports.outgoing = parseInt(airports.depsum);
+      airports.outgoing = airports.depsum;
   }
   if (isAirportShow ==true) {
     drawAirports(airports);
@@ -358,7 +358,12 @@ function isContinental(state) {
 function typeAirport(airport) {
   airport.longitude = parseFloat(airport.longitude);
   airport.latitude  = parseFloat(airport.latitude);
-
+  airport.arrcount = parseInt(airport.arrcount);
+  airport.depcount = parseInt(airport.depcount);
+  airport.depsum = parseInt(airport.depsum);
+  airport.arrsum = parseInt(airport.arrsum);
+  airport.time = parseInt(airport.time);
+  airport.year = parseInt(airport.year);
   // use projection hard-coded to match topojson data
   const coords = projection([airport.longitude, airport.latitude]);
   airport.x = coords[0];
