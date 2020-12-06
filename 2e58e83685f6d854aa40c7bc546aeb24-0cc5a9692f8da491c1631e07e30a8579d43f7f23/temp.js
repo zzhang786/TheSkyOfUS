@@ -58,14 +58,25 @@ const promises = [
 Promise.all(promises).then(processData);
 
 function processData(values) {
-  console.assert(values.length === 2);
+  console.assert(values.length === 13);
 
   let airports = values[0];
   let flights  = values[1];
+  let yearData = values[2];
+  let hourData = values[3];
+  let isLineShow = values[4];
+  let isAirplaneShow = values[5];
+  let isAirportShow = values[6];
+  let arrivalShow = values[7];
+  let isDelayCount = values[8];
+  let airplaneCompany = values[9];
+  let selectedDepartureAirport = values[10];
+  let selectedArrivalAirport = values[11];
+  let selectedCompany = values[12];
 
-  flights = flights.filter(flight => flight.year == app.currentYear());
+  flights = flights.filter(flight => flight.year == yearData);
 
-  flights = flights.filter(flight => flight.ARR_TIME <= app.currentTime() && flight.DEP_TIME >= app.currentTime();
+  flights = flights.filter(flight => flight.ARR_TIME <= hourData*50 && flight.DEP_TIME >= hourData*50;
 
 
   // convert airports array (pre filter) into map for fast lookup
@@ -98,23 +109,23 @@ function processData(values) {
   // done filtering airports can draw
 //   let selectedtime = 0;
 //   let selectedyear = 2012;
-  airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
+  airports = airports.filter(airports => airports.time == currentTimeData && airports.year == yearData);
 
-  if (app.isAirportShow =="True") {
+  if (isAirportShow ==true) {
     drawAirports(airports);
   }
   
   // reset map to only include airports post-filter
   airplaneCompany
-  if (app.selectedDepartureAirport!=null){
-    flights = flights.filter(flight => flight.ORIGIN == app.selectedDepartureAirport);
+  if (selectedDepartureAirport!=null){
+    flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
   }
-  if (app.selectedArrivalAirport!=null){
-    flights = flights.filter(flight => flight.DEST == app.selectedArrivalAirport);
+  if (selectedArrivalAirport!=null){
+    flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
   }
-  if (app.selectedArrivalAirport!=null){
-  flights = flights.filter(flight => flight.DEP_TIME <= app.d_time*100 && flight.DEP_TIME > (app.d_time-1)*100);
-  flights = flights.filter(flight => flight.ARR_TIME <= app.a_time*100 && flight.ARR_TIME > (app.a_time-1)*100);
+//   if (selectedArrivalAirport!=null){
+//   flights = flights.filter(flight => flight.DEP_TIME <= app.d_time*100 && flight.DEP_TIME > (app.d_time-1)*100);
+//   flights = flights.filter(flight => flight.ARR_TIME <= app.a_time*100 && flight.ARR_TIME > (app.a_time-1)*100);
 
   // calculate incoming and outgoing degree based on flights
   // flights are given by airport iata code (not index)
@@ -126,19 +137,19 @@ function processData(values) {
   });
   
   // filter out flights that are not between airports we have leftover
-  old = flights.length;
+
   flights = flights.filter(link => iata.has(link.source.iata) && iata.has(link.target.iata));
-  console.log(" removed: " + (old - flights.length) + " flights");
+
 
   // done filtering flights can draw
-  if (app.isLineShow =="True") {
+  if (isLineShow ==true) {
     drawFlights(airports, flights);
   }
   console.log({airports: airports});
   console.log({flights: flights});
 
   // draw airplanes
-  if (app.isAirplaneShow =="True") {
+  if (isAirplaneShow ==true) {
     drawAirplanes(airports, flights);
   }
 }
@@ -348,11 +359,11 @@ function typeAirport(airport) {
   //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //   let aord = 0;
 //   let corl = 0;
-  if (arrivalShow == False && isDelayCount == '0'){
+  if (arrivalShow == false && isDelayCount == '0'){
       airport.outgoing = parseInt(airport.arrcount);
-  }else if (arrivalShow == True && isDelayCount== '0'){
+  }else if (arrivalShow == true && isDelayCount== '0'){
       airport.outgoing = parseInt(airport.depcount);
-  }else if (arrivalShow == False && isDelayCount == '1'){
+  }else if (arrivalShow == false && isDelayCount == '1'){
       airport.outgoing = parseInt(airport.arrsum);
   }else {
       airport.outgoing = parseInt(airport.depsum);
