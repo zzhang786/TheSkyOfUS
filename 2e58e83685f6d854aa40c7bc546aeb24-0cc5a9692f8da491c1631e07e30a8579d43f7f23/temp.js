@@ -110,7 +110,19 @@ function processData(values) {
 //   let selectedtime = 0;
 //   let selectedyear = 2012;
   airports = airports.filter(airports => airports.time == currentTimeData && airports.year == yearData);
-
+  //******************************************
+  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if (arrivalShow == false && isDelayCount == '0'){
+      airport.outgoing = parseInt(airport.arrcount);
+  }else if (arrivalShow == true && isDelayCount== '0'){
+      airport.outgoing = parseInt(airport.depcount);
+  }else if (arrivalShow == false && isDelayCount == '1'){
+      airport.outgoing = parseInt(airport.arrsum);
+  }else {
+      airport.outgoing = parseInt(airport.depsum);
+  }
   if (isAirportShow ==true) {
     drawAirports(airports);
   }
@@ -351,23 +363,10 @@ function typeAirport(airport) {
   const coords = projection([airport.longitude, airport.latitude]);
   airport.x = coords[0];
   airport.y = coords[1];
-  airport.r = 0
+  airport.r = 0;
+  airport.outgoing = 0;
 
-  //******************************************
-  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//   let aord = 0;
-//   let corl = 0;
-  if (arrivalShow == false && isDelayCount == '0'){
-      airport.outgoing = parseInt(airport.arrcount);
-  }else if (arrivalShow == true && isDelayCount== '0'){
-      airport.outgoing = parseInt(airport.depcount);
-  }else if (arrivalShow == false && isDelayCount == '1'){
-      airport.outgoing = parseInt(airport.arrsum);
-  }else {
-      airport.outgoing = parseInt(airport.depsum);
-  }
+
 
   airport.flights = [];  // eventually tracks outgoing flights
 
