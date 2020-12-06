@@ -350,8 +350,8 @@ function typeAirport(airport) {
 // see flights.csv
 // convert count to number
 function typeFlight(flight) {
-  flight.DEP_TIME = parseFloat(flight.DEP_TIME)/60.0;
-  flight.ARR_TIME = parseFloat(flight.ARR_TIME)/60.0;
+  flight.DEP_TIME = parseFloat(flight.DEP_TIME);
+  flight.ARR_TIME = parseFloat(flight.ARR_TIME);
 
   flight.year = parseInt(flight.year);
   return flight;
