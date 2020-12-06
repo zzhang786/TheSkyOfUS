@@ -96,8 +96,8 @@ function processData(values) {
   // console.log(" removed: " + (old - airports.length) + " airports with low outgoing degree");
 
   // done filtering airports can draw
-  let selectedtime = 0;
-  let selectedyear = 2012;
+//   let selectedtime = 0;
+//   let selectedyear = 2012;
   airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
 
   if (app.isAirportShow =="True") {
@@ -346,13 +346,13 @@ function typeAirport(airport) {
   //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let aord = 0;
-  let corl = 0;
-  if (aord == 0 && corl == 0){
+//   let aord = 0;
+//   let corl = 0;
+  if (arrivalShow == False && isDelayCount == '0'){
       airport.outgoing = parseInt(airport.arrcount);
-  }else if (aord == 1 && corl == 0){
+  }else if (arrivalShow == True && isDelayCount== '0'){
       airport.outgoing = parseInt(airport.depcount);
-  }else if (aord == 0 && corl == 1){
+  }else if (arrivalShow == False && isDelayCount == '1'){
       airport.outgoing = parseInt(airport.arrsum);
   }else {
       airport.outgoing = parseInt(airport.depsum);
