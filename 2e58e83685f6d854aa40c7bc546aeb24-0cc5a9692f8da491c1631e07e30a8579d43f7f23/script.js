@@ -58,9 +58,10 @@ const promises = [
 ];
 
 Promise.all(promises).then(processData);
-
+let globalValues;
 // process airport and flight data
-function processData(values) {
+function processData(values, selectedtime, selectedyear) {
+  globalValues = values;
   console.assert(values.length === 2);
 
   let airports = values[0];
@@ -77,9 +78,9 @@ function processData(values) {
   //******************************
   //insert the user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  let selectedtime = 0;
-  let selectedyear = 2012;
+
+  // let selectedtime = 0;
+  // let selectedyear = 2012;
   airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
 
   // done filtering airports can draw
@@ -101,6 +102,7 @@ function processData(values) {
   console.log({flights: flights});
 }
 
+processData(fsdg,wgweg);
 // draws the underlying map
 function drawMap(map) {
   // remove non-continental states
@@ -292,6 +294,7 @@ function generateSegments(nodes, links) {
   });
 
   links.forEach(function(d, i) {
+    console.log('LJP: %c%s >>> ', 'background:#ff9912;color:white;font-size:20px', 'd', d);
     // calculate the distance between the source and target
     let length = distance(d.source, d.target);
 
@@ -395,6 +398,7 @@ function typeFlight(flight) {
 // calculates the distance between two nodes
 // sqrt( (x2 - x1)^2 + (y2 - y1)^2 )
 function distance(source, target) {
+
   const dx2 = Math.pow(target.x - source.x, 2);
   const dy2 = Math.pow(target.y - source.y, 2);
 
