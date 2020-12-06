@@ -5,11 +5,12 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   airports:
-    "airports_name.csv",
+    "/data/airportdelay.csv",
 
   // source: https://gist.github.com/mbostock/7608400
   flights:
     "top_50_1125.csv",
+
 
 };
 
@@ -38,11 +39,12 @@ const g = {
   basemap:  svg.select("g#basemap"),
   flights:  svg.select("g#flights"),
   airports: svg.select("g#airports"),
+  delays:   svg.select("g#delays"),
 };
 console.assert(g.basemap.size()  === 1);
 console.assert(g.flights.size()  === 1);
 console.assert(g.airports.size() === 1);
-
+console.assert(g.delays.size() === 1);
 
 const tooltip = d3.select("text#tooltip");
 console.assert(tooltip.size() === 1);
@@ -62,7 +64,6 @@ function processData(values) {
 
   let airports = values[0];
   let flights  = values[1];
-  let delays = values[2];
 
   flights = flights.filter(flight => flight.year == app.currentYear());
 
@@ -97,6 +98,9 @@ function processData(values) {
   // console.log(" removed: " + (old - airports.length) + " airports with low outgoing degree");
 
   // done filtering airports can draw
+  let selectedtime = 0;
+  let selectedyear = 2012;
+  airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
 
   if (app.isAirportShow =="True") {
     drawAirports(airports);
@@ -339,16 +343,27 @@ function typeAirport(airport) {
   airport.x = coords[0];
   airport.y = coords[1];
   airport.r = 0
-  // airport.outgoing = 0;  // eventually tracks number of outgoing flights
-  // airport.incoming = 0;  // eventually tracks number of incoming flights
+
+  //******************************************
+  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  let aord = 0;
+  let corl = 0;
+  if (aord == 0 && corl == 0){
+      airport.outgoing = parseInt(airport.arrcount);
+  }else if (aord == 1 && corl == 0){
+      airport.outgoing = parseInt(airport.depcount);
+  }else if (aord == 0 && corl == 1){
+      airport.outgoing = parseInt(airport.arrsum);
+  }else {
+      airport.outgoing = parseInt(airport.depsum);
+  }
 
   airport.flights = [];  // eventually tracks outgoing flights
 
   return airport;
 }
-
-// see flights.csv
-// convert count to number
 function typeFlight(flight) {
   flight.DEP_TIME = parseFloat(flight.DEP_TIME);
   flight.ARR_TIME = parseFloat(flight.ARR_TIME);
@@ -365,3 +380,4 @@ function distance(source, target) {
 
   return Math.sqrt(dx2 + dy2);
 }
+
