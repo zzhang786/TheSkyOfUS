@@ -115,13 +115,13 @@ function processData(values) {
   //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (arrivalShow == false && isDelayCount == '0'){
-      airport.outgoing = parseInt(airport.arrcount);
+      airports.outgoing = parseInt(airports.arrcount);
   }else if (arrivalShow == true && isDelayCount== '0'){
-      airport.outgoing = parseInt(airport.depcount);
+      airports.outgoing = parseInt(airports.depcount);
   }else if (arrivalShow == false && isDelayCount == '1'){
-      airport.outgoing = parseInt(airport.arrsum);
+      airports.outgoing = parseInt(airports.arrsum);
   }else {
-      airport.outgoing = parseInt(airport.depsum);
+      airports.outgoing = parseInt(airports.depsum);
   }
   if (isAirportShow ==true) {
     drawAirports(airports);
