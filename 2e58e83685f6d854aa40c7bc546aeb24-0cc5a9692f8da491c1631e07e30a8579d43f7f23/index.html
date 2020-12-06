@@ -47,8 +47,8 @@
           <input type="range" v-model="currentYear" class="custom-range" id="customRange" min="2009" max="2018">
           <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentYear}}</span>
           <h5 class='p-3 time'>Time: </h5>
-          <input type="range" v-model="currentTime" class="custom-range" id="customRange" min="0" max="24">
-          <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentTime}}</span>
+          <input type="range" v-model="currentTime" class="custom-range" id="customRange" min="0" max="47">
+          <span class="font-weight-bold text-primary ml-2 valueSpan">{{Math.floor(currentTime/2}.toString()+":"+(currentTime%2*30).toString()}</span>
         </div>
       </div>
     </div>
