@@ -38,13 +38,11 @@ const scales = {
 const g = {
   basemap:  svg.select("g#basemap"),
   flights:  svg.select("g#flights"),
-  airports: svg.select("g#airports"),
-  delays:   svg.select("g#delays"),
+  airports: svg.select("g#airports")
 };
 console.assert(g.basemap.size()  === 1);
 console.assert(g.flights.size()  === 1);
 console.assert(g.airports.size() === 1);
-console.assert(g.delays.size() === 1);
 
 const tooltip = d3.select("text#tooltip");
 console.assert(tooltip.size() === 1);
