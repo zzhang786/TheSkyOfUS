@@ -5,11 +5,11 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   airports:
-    "/data/airportdelay.csv",
+    "airportdelay.csv",
 
   // source: https://gist.github.com/mbostock/7608400
   flights:
-    "top_50_1125.csv",
+    "top50_1125.csv",
 
 
 };
@@ -55,10 +55,10 @@ const promises = [
   d3.csv(urls.flights,  typeFlight)
 ];
 
-Promise.all(promises).then(processData);
+// Promise.all(promises).then(processData);
 
 function processData(values) {
-  console.assert(values.length === 13);
+  console.log(values.length);
 
   let airports = values[0];
   let flights  = values[1];
@@ -76,7 +76,7 @@ function processData(values) {
 
   flights = flights.filter(flight => flight.year == yearData);
 
-  flights = flights.filter(flight => flight.ARR_TIME <= hourData*50 && flight.DEP_TIME >= hourData*50;
+  flights = flights.filter(flight => flight.ARR_TIME <= hourData*50 && flight.DEP_TIME >= hourData*50);
 
 
   // convert airports array (pre filter) into map for fast lookup
@@ -109,7 +109,7 @@ function processData(values) {
   // done filtering airports can draw
 //   let selectedtime = 0;
 //   let selectedyear = 2012;
-  airports = airports.filter(airports => airports.time == currentTimeData && airports.year == yearData);
+  airports = airports.filter(airports => airports.time == hourData && airports.year == yearData);
   //******************************************
   //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -393,4 +393,5 @@ function distance(source, target) {
 
   return Math.sqrt(dx2 + dy2);
 }
+
 
