@@ -5,21 +5,23 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   airports:
-    "/data/airportdelay.csv",
+    "airportdelay.csv",
+
   // source: https://gist.github.com/mbostock/7608400
   flights:
-    "/data/flights_by_dela.csv"
+    "top50_1125.csv",
+
+
 };
+
 
 const svg  = d3.select("svg");
 
 const width  = parseInt(svg.attr("width"));
 const height = parseInt(svg.attr("height"));
 const hypotenuse = Math.sqrt(width * width + height * height);
-
-// must be hard-coded to match our topojson projection
-// source: https://github.com/topojson/us-atlas
 const projection = d3.geoAlbers().scale(1280).translate([480, 300]);
+
 
 const scales = {
   // used to scale airport bubbles
@@ -36,14 +38,11 @@ const scales = {
 const g = {
   basemap:  svg.select("g#basemap"),
   flights:  svg.select("g#flights"),
-  airports: svg.select("g#airports"),
-  voronoi:  svg.select("g#voronoi")
+  airports: svg.select("g#airports")
 };
-
 console.assert(g.basemap.size()  === 1);
 console.assert(g.flights.size()  === 1);
 console.assert(g.airports.size() === 1);
-console.assert(g.voronoi.size()  === 1);
 
 const tooltip = d3.select("text#tooltip");
 console.assert(tooltip.size() === 1);
@@ -51,58 +50,123 @@ console.assert(tooltip.size() === 1);
 // load and draw base map
 d3.json(urls.map).then(drawMap);
 
-// load the airport and flight data together
 const promises = [
   d3.csv(urls.airports, typeAirport),
   d3.csv(urls.flights,  typeFlight)
 ];
 
-Promise.all(promises).then(processData);
-let globalValues;
-// process airport and flight data
-function processData(values, selectedtime, selectedyear) {
-  globalValues = values;
-  console.assert(values.length === 2);
+// Promise.all(promises).then(processData);
+
+function processData(values) {
+  console.log(values.length);
 
   let airports = values[0];
   let flights  = values[1];
+  let yearData = values[2];
+  let hourData = values[3];
+  let isLineShow = values[4];
+  let isAirplaneShow = values[5];
+  let isAirportShow = values[6];
+  let arrivalShow = values[7];
+  let isDelayCount = values[8];
+  let airplaneCompany = values[9];
+  let selectedDepartureAirport = values[10];
+  let selectedArrivalAirport = values[11];
+  let selectedCompany = values[12];
 
-  console.log("airports: " + airports.length);
-  console.log(" flights: " + flights.length);
+  flights = flights.filter(flight => flight.year == yearData);
+
+  flights = flights.filter(flight => flight.ARR_TIME <= hourData*50 && flight.DEP_TIME >= hourData*50);
+
 
   // convert airports array (pre filter) into map for fast lookup
-  let iata = new Map(airports.map(node => [node.iata, node]));
+  let iata = new Map(airports.map(node => [node.CODE, node]));
+  
+  // // remove airports out of bounds
+  // let old = airports.length;
+  // airports = airports.filter(airport => airport.x >= 0 && airport.y >= 0);
+  // console.log(" removed: " + (old - airports.length) + " airports out of bounds");
+
+
+  // // remove airports with NA state
+  // old = airports.length;
+  // airports = airports.filter(airport => airport.state !== "NA");
+  // console.log(" removed: " + (old - airports.length) + " airports with NA state");
+
+  // // remove airports without any flights
+  // old = airports.length;
+  // airports = airports.filter(airport => airport.outgoing > 0 && airport.incoming > 0);
+  // console.log(" removed: " + (old - airports.length) + " airports without flights");
+
+  // // sort airports by outgoing degree
+  // airports.sort((a, b) => d3.descending(a.outgoing, b.outgoing));
+
+  // // keep only the top airports
+  // old = airports.length;
+  // airports = airports.slice(0, 50);
+  // console.log(" removed: " + (old - airports.length) + " airports with low outgoing degree");
+
+  // done filtering airports can draw
+//   let selectedtime = 0;
+//   let selectedyear = 2012;
+  airports = airports.filter(airports => airports.time == hourData && airports.year == yearData);
+  //******************************************
+  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if (arrivalShow == false && isDelayCount == '0'){
+      airports.outgoing = airports.arrcount;
+  }else if (arrivalShow == true && isDelayCount== '0'){
+      airports.outgoing = airports.depcountparseInt(airports.depcount);
+  }else if (arrivalShow == false && isDelayCount == '1'){
+      airports.outgoing = airports.arrsum;
+  }else {
+      airports.outgoing = airports.depsum;
+  }
+  if (isAirportShow ==true) {
+    drawAirports(airports);
+  }
+  
+  // reset map to only include airports post-filter
+  airplaneCompany
+  if (selectedDepartureAirport!=null){
+    flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
+  }
+  if (selectedArrivalAirport!=null){
+    flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
+  }
+//   if (selectedArrivalAirport!=null){
+//   flights = flights.filter(flight => flight.DEP_TIME <= app.d_time*100 && flight.DEP_TIME > (app.d_time-1)*100);
+//   flights = flights.filter(flight => flight.ARR_TIME <= app.a_time*100 && flight.ARR_TIME > (app.a_time-1)*100);
 
   // calculate incoming and outgoing degree based on flights
   // flights are given by airport iata code (not index)
-  //******************************
-  //insert the user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  // let selectedtime = 0;
-  // let selectedyear = 2012;
-  airports = airports.filter(airports => airports.time == selectedtime && airports.year == selectedyear);
-
-  // done filtering airports can draw
-  drawAirports(airports);
-  drawPolygons(airports);
-
-  // reset map to only include airports post-filter
-  iata = new Map(airports.map(node => [node.iata, node]));
-
+  flights.forEach(function(link) {
+    link.source = iata.get(link.ORIGIN);
+    link.target = iata.get(link.DEST);
+    // link.source.outgoing += link.count;
+    // link.target.incoming += link.count;
+  });
+  
   // filter out flights that are not between airports we have leftover
-  old = flights.length;
+
   flights = flights.filter(link => iata.has(link.source.iata) && iata.has(link.target.iata));
-  console.log(" removed: " + (old - flights.length) + " flights");
+
 
   // done filtering flights can draw
-  drawFlights(airports, flights);
-
+  if (isLineShow ==true) {
+    drawFlights(airports, flights);
+  }
   console.log({airports: airports});
   console.log({flights: flights});
+
+  // draw airplanes
+  if (isAirplaneShow ==true) {
+    drawAirplanes(airports, flights);
+  }
 }
 
-processData(fsdg,wgweg);
+
 // draws the underlying map
 function drawMap(map) {
   // remove non-continental states
@@ -133,6 +197,7 @@ function drawMap(map) {
     .attr("d", path);
 }
 
+
 function drawAirports(airports) {
   // adjust scale
   const extent = d3.extent(airports, d => d.outgoing);
@@ -154,81 +219,7 @@ function drawAirports(airports) {
     });
 }
 
-function drawPolygons(airports) {
-  // convert array of airports into geojson format
-  const geojson = airports.map(function(airport) {
-    return {
-      type: "Feature",
-      properties: airport,
-      geometry: {
-        type: "Point",
-        coordinates: [airport.longitude, airport.latitude]
-      }
-    };
-  });
 
-  // calculate voronoi polygons
-  const polygons = d3.geoVoronoi().polygons(geojson);
-  console.log(polygons);
-
-  g.voronoi.selectAll("path")
-    .data(polygons.features)
-    .enter()
-    .append("path")
-    .attr("d", d3.geoPath(projection))
-    .attr("class", "voronoi")
-    .on("mouseover", function(d) {
-      let airport = d.properties.site.properties;
-
-      d3.select(airport.bubble)
-        .classed("highlight", true);
-
-      d3.selectAll(airport.flights)
-        .classed("highlight", true)
-        .raise();
-
-      // make tooltip take up space but keep it invisible
-      tooltip.style("display", null);
-      tooltip.style("visibility", "hidden");
-
-      // set default tooltip positioning
-      tooltip.attr("text-anchor", "middle");
-      tooltip.attr("dy", -scales.airports(airport.outgoing) - 4);
-      tooltip.attr("x", airport.x);
-      tooltip.attr("y", airport.y);
-
-      // set the tooltip text
-      tooltip.text(airport.name + " in " + airport.city + ", " + airport.state);
-
-      // double check if the anchor needs to be changed
-      let bbox = tooltip.node().getBBox();
-
-      if (bbox.x <= 0) {
-        tooltip.attr("text-anchor", "start");
-      }
-      else if (bbox.x + bbox.width >= width) {
-        tooltip.attr("text-anchor", "end");
-      }
-
-      tooltip.style("visibility", "visible");
-    })
-    .on("mouseout", function(d) {
-      let airport = d.properties.site.properties;
-
-      d3.select(airport.bubble)
-        .classed("highlight", false);
-
-      d3.selectAll(airport.flights)
-        .classed("highlight", false);
-
-      d3.select("text#tooltip").style("visibility", "hidden");
-    })
-    .on("dblclick", function(d) {
-      // toggle voronoi outline
-      let toggle = d3.select(this).classed("highlight");
-      d3.select(this).classed("highlight", !toggle);
-    });
-}
 
 function drawFlights(airports, flights) {
   // break each flight between airports into multiple segments
@@ -277,6 +268,7 @@ function drawFlights(airports, flights) {
   layout.nodes(bundle.nodes).force("link").links(bundle.links);
 }
 
+
 // Turns a single edge into several segments that can
 // be used for simple edge bundling.
 function generateSegments(nodes, links) {
@@ -294,7 +286,6 @@ function generateSegments(nodes, links) {
   });
 
   links.forEach(function(d, i) {
-    console.log('LJP: %c%s >>> ', 'background:#ff9912;color:white;font-size:20px', 'd', d);
     // calculate the distance between the source and target
     let length = distance(d.source, d.target);
 
@@ -349,6 +340,12 @@ function generateSegments(nodes, links) {
   return bundle;
 }
 
+
+function drawAirplanes(airports, flights){
+  return;
+}
+
+
 // determines which states belong to the continental united states
 // https://gist.github.com/mbostock/4090846#file-us-state-names-tsv
 function isContinental(state) {
@@ -361,44 +358,36 @@ function isContinental(state) {
 function typeAirport(airport) {
   airport.longitude = parseFloat(airport.longitude);
   airport.latitude  = parseFloat(airport.latitude);
-
+  airport.arrcount = parseInt(airport.arrcount);
+  airport.depcount = parseInt(airport.depcount);
+  airport.depsum = parseInt(airport.depsum);
+  airport.arrsum = parseInt(airport.arrsum);
+  airport.time = parseInt(airport.time);
+  airport.year = parseInt(airport.year);
   // use projection hard-coded to match topojson data
   const coords = projection([airport.longitude, airport.latitude]);
   airport.x = coords[0];
   airport.y = coords[1];
+  airport.r = 0;
+  airport.outgoing = 0;
 
-  //******************************************
-  //insert user selection here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //please update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //important!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let aord = 0;
-  let corl = 0;
-  if (aord == 0 && corl == 0){
-      airport.outgoing = parseInt(airport.arrcount);
-  }else if (aord == 1 && corl == 0){
-      airport.outgoing = parseInt(airport.depcount);
-  }else if (aord == 0 && corl == 1){
-      airport.outgoing = parseInt(airport.arrsum);
-  }else {
-      airport.outgoing = parseInt(airport.depsum);
-  }
+
 
   airport.flights = [];  // eventually tracks outgoing flights
 
   return airport;
 }
-
-// see flights.csv
-// convert count to number
 function typeFlight(flight) {
-  flight.count = parseInt(flight.count);
+  flight.DEP_TIME = parseFloat(flight.DEP_TIME);
+  flight.ARR_TIME = parseFloat(flight.ARR_TIME);
+
+  flight.year = parseInt(flight.year);
   return flight;
 }
 
 // calculates the distance between two nodes
 // sqrt( (x2 - x1)^2 + (y2 - y1)^2 )
 function distance(source, target) {
-
   const dx2 = Math.pow(target.x - source.x, 2);
   const dy2 = Math.pow(target.y - source.y, 2);
 
