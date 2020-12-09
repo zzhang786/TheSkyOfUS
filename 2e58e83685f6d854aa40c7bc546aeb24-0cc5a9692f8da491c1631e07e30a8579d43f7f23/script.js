@@ -11,7 +11,9 @@ const urls = {
   flights:
     "data/top50_1125.csv",
 
-  comps: 'data/comp.csv'
+  comps: 'data/comp.csv',
+  
+  allairport: 'data/airport.csv'
 };
 
 
@@ -462,6 +464,12 @@ function typeFlight(flight) {
 function typeCompanys(comp) {
   return {
     companyName: comp.op
+  };
+}
+
+function typeAllairport(airport) {
+  return {
+    airport
   };
 }
 
