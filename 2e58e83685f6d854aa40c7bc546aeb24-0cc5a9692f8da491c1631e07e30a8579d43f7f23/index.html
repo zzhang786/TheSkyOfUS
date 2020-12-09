@@ -179,6 +179,7 @@ var app2 = {
       d3.csv(urls.airports, typeAirport),
       d3.csv(urls.flights, typeFlight),
       d3.csv(urls.comps, typeCompanys),
+      d3.csv(urls.allairport,typeAllairport),
     ];
 
     Promise.all(promises).then((values) => {
