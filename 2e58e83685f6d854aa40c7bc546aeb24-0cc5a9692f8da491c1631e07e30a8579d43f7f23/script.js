@@ -5,13 +5,13 @@ const urls = {
 
   // source: https://gist.github.com/mbostock/7608400
   airports:
-    "airportdelay.csv",
+    "data/airportdelay.csv",
 
   // source: https://gist.github.com/mbostock/7608400
   flights:
-    "top50_1125.csv",
+    "data/top50_1125.csv",
 
-
+  comps: 'data/comp.csv'
 };
 
 
@@ -38,11 +38,14 @@ const scales = {
 const g = {
   basemap:  svg.select("g#basemap"),
   flights:  svg.select("g#flights"),
-  airports: svg.select("g#airports")
+  airports: svg.select("g#airports"),
+  voronoi:  svg.select("g#voronoi")
 };
+
 console.assert(g.basemap.size()  === 1);
 console.assert(g.flights.size()  === 1);
 console.assert(g.airports.size() === 1);
+console.assert(g.voronoi.size()  === 1);
 
 const tooltip = d3.select("text#tooltip");
 console.assert(tooltip.size() === 1);
@@ -50,15 +53,14 @@ console.assert(tooltip.size() === 1);
 // load and draw base map
 d3.json(urls.map).then(drawMap);
 
-const promises = [
-  d3.csv(urls.airports, typeAirport),
-  d3.csv(urls.flights,  typeFlight)
-];
+// const promises = [
+//   d3.csv(urls.airports, typeAirport),
+//   d3.csv(urls.flights,  typeFlight)
+// ];
 
 // Promise.all(promises).then(processData);
 
 function processData(values) {
-  console.log(values.length);
 
   let airports = values[0];
   let flights  = values[1];
@@ -74,14 +76,18 @@ function processData(values) {
   let selectedArrivalAirport = values[11];
   let selectedCompany = values[12];
 
-  flights = flights.filter(flight => flight.year == yearData);
-
-  flights = flights.filter(flight => flight.ARR_TIME <= hourData*50 && flight.DEP_TIME >= hourData*50);
-
+  flights = flights.filter(flight => flight.FL_DATE == yearData);
+  if (hourData%2 == 0){
+    flights = flights.filter(flight => flight.ARR_TIME >= hourData*50 && flight.DEP_TIME <= hourData*50);
+  }
+  else{
+    flights = flights.filter(flight => flight.ARR_TIME >= hourData*50-20 && flight.DEP_TIME <= hourData*50-20);
+  }
+  
 
   // convert airports array (pre filter) into map for fast lookup
-  let iata = new Map(airports.map(node => [node.CODE, node]));
-  
+  let iata = new Map(airports.map(node => [node.iata, node]));
+
   // // remove airports out of bounds
   // let old = airports.length;
   // airports = airports.filter(airport => airport.x >= 0 && airport.y >= 0);
@@ -117,7 +123,7 @@ function processData(values) {
   if (arrivalShow == false && isDelayCount == '0'){
       airports.outgoing = airports.arrcount;
   }else if (arrivalShow == true && isDelayCount== '0'){
-      airports.outgoing = airports.depcountparseInt(airports.depcount);
+      airports.outgoing = parseInt(airports.depcount);
   }else if (arrivalShow == false && isDelayCount == '1'){
       airports.outgoing = airports.arrsum;
   }else {
@@ -126,15 +132,14 @@ function processData(values) {
   if (isAirportShow ==true) {
     drawAirports(airports);
   }
-  
+
   // reset map to only include airports post-filter
-  airplaneCompany
-  if (selectedDepartureAirport!=null){
-    flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
-  }
-  if (selectedArrivalAirport!=null){
-    flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
-  }
+  // airplaneCompany
+  flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
+  flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
+  // flights = flights.filter(flight => flight.OP_CARRIER == selectedCompany);
+
+
 //   if (selectedArrivalAirport!=null){
 //   flights = flights.filter(flight => flight.DEP_TIME <= app.d_time*100 && flight.DEP_TIME > (app.d_time-1)*100);
 //   flights = flights.filter(flight => flight.ARR_TIME <= app.a_time*100 && flight.ARR_TIME > (app.a_time-1)*100);
@@ -147,18 +152,17 @@ function processData(values) {
     // link.source.outgoing += link.count;
     // link.target.incoming += link.count;
   });
-  
+
   // filter out flights that are not between airports we have leftover
 
   flights = flights.filter(link => iata.has(link.source.iata) && iata.has(link.target.iata));
 
 
+  // console.log(flights);
   // done filtering flights can draw
-  if (isLineShow ==true) {
+  if (isLineShow == true) {
     drawFlights(airports, flights);
   }
-  console.log({airports: airports});
-  console.log({flights: flights});
 
   // draw airplanes
   if (isAirplaneShow ==true) {
@@ -219,12 +223,87 @@ function drawAirports(airports) {
     });
 }
 
+// function drawPolygons(airports) {
+//   // convert array of airports into geojson format
+//   const geojson = airports.map(function(airport) {
+//     return {
+//       type: "Feature",
+//       properties: airport,
+//       geometry: {
+//         type: "Point",
+//         coordinates: [airport.longitude, airport.latitude]
+//       }
+//     };
+//   });
+
+//   // calculate voronoi polygons
+//   const polygons = d3.geoVoronoi().polygons(geojson);
+//   console.log(polygons);
+
+//   g.voronoi.selectAll("path")
+//     .data(polygons.features)
+//     .enter()
+//     .append("path")
+//     .attr("d", d3.geoPath(projection))
+//     .attr("class", "voronoi")
+//     .on("mouseover", function(d) {
+//       let airport = d.properties.site.properties;
+
+//       d3.select(airport.bubble)
+//         .classed("highlight", true);
+
+//       d3.selectAll(airport.flights)
+//         .classed("highlight", true)
+//         .raise();
+
+//       // make tooltip take up space but keep it invisible
+//       tooltip.style("display", null);
+//       tooltip.style("visibility", "hidden");
+
+//       // set default tooltip positioning
+//       tooltip.attr("text-anchor", "middle");
+//       tooltip.attr("dy", -scales.airports(airport.outgoing) - 4);
+//       tooltip.attr("x", airport.x);
+//       tooltip.attr("y", airport.y);
+
+//       // set the tooltip text
+//       tooltip.text(airport.name);
+
+//       // double check if the anchor needs to be changed
+//       let bbox = tooltip.node().getBBox();
+
+//       if (bbox.x <= 0) {
+//         tooltip.attr("text-anchor", "start");
+//       }
+//       else if (bbox.x + bbox.width >= width) {
+//         tooltip.attr("text-anchor", "end");
+//       }
+
+//       tooltip.style("visibility", "visible");
+//     })
+//     .on("mouseout", function(d) {
+//       let airport = d.properties.site.properties;
+
+//       d3.select(airport.bubble)
+//         .classed("highlight", false);
+
+//       d3.selectAll(airport.flights)
+//         .classed("highlight", false);
+
+//       d3.select("text#tooltip").style("visibility", "hidden");
+//     })
+//     .on("dblclick", function(d) {
+//       // toggle voronoi outline
+//       let toggle = d3.select(this).classed("highlight");
+//       d3.select(this).classed("highlight", !toggle);
+//     });
+// }
 
 
 function drawFlights(airports, flights) {
   // break each flight between airports into multiple segments
   let bundle = generateSegments(airports, flights);
-
+  console.log(bundle);
   // https://github.com/d3/d3-shape#curveBundle
   let line = d3.line()
     .curve(d3.curveBundle)
@@ -237,11 +316,11 @@ function drawFlights(airports, flights) {
     .append("path")
     .attr("d", line)
     .attr("class", "flight")
-    .each(function(d) {
+    // .each(function(d) {
       // adds the path object to our source airport
       // makes it fast to select outgoing paths
-      d[0].flights.push(this);
-    });
+      // d[0].flights.push(this);
+    // });
 
   // https://github.com/d3/d3-force
   let layout = d3.forceSimulation()
@@ -371,18 +450,19 @@ function typeAirport(airport) {
   airport.r = 0;
   airport.outgoing = 0;
 
-
-
-  airport.flights = [];  // eventually tracks outgoing flights
-
   return airport;
 }
 function typeFlight(flight) {
-  flight.DEP_TIME = parseFloat(flight.DEP_TIME);
-  flight.ARR_TIME = parseFloat(flight.ARR_TIME);
-
-  flight.year = parseInt(flight.year);
+  flight.DEP_TIME = parseInt(flight.DEP_TIME);
+  flight.ARR_TIME = parseInt(flight.ARR_TIME);
+  flight.FL_DATE = parseInt(flight.FL_DATE);
   return flight;
+}
+
+function typeCompanys(comp) {
+  return {
+    companyName: comp.op
+  };
 }
 
 // calculates the distance between two nodes

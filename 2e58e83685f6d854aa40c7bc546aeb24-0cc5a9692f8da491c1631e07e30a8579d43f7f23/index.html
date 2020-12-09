@@ -81,9 +81,9 @@
         </div>
         <div class='h-70 w-100 p-2 block bd text-center'>
           <label class="p-1"><input class="radio" type="radio" name="isDelayCount" value="0" v-model="isDelayCount">
-            Delay Count</label>
+            Counts of flight delays</label>
           <label class="p-1"><input class="radio" type="radio" name="isDelayCount" value="1" v-model="isDelayCount">
-            Delay Time</label>
+            Length of delayed time</label>
         </div>
       </div>
 
@@ -104,16 +104,14 @@
           {{item.name}}
         </option>
       </select>
-        <div class="dropdown  m-2">
-          <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">Airplane Company
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-            <li role="presentation">
-              <a role="menuitem" tabindex="-1" href="#">Java</a>
-            </li>
-          </ul>
-        </div>
+        Airplane Company<select v-model="selectedCompany" name="deptAirport" id="deptAirport">
+        <option
+          v-for="item in airplaneCompany"
+          :value="item.companyName"
+        >
+          {{item.companyName}}
+        </option>
+      </select>
       </div>
     </div>
   </div>
@@ -147,58 +145,103 @@ var app1 = {
   },
   watch: {
     currentTimeData() {
-      processData(globalValues, this.currentTimeData, this.currentYearData);
+      app2.methods.refreshMap.call(app2this);
     },
     currentYearData () {
-      processData(globalValues, this.currentTimeData, this.currentYearData);
+      app2.methods.refreshMap.call(app2this);
     },
   }
 };
+let airports
+let flights
+let airplaneCompany
 var app2 = {
   data () {
     return {
-      yearData: 2009,
-      hourData: 0,
       isLineShow: true,
       isAirplaneShow: true,
       isAirportShow: true,
       arrivalShow: true,
       isDelayCount: '0',
+      flights: [],
       airports: [],
       airplaneCompany: [],
-      selectedDepartureAirport: null,
-      selectedArrivalAirport: null,
-      selectedCompany: null,
+      selectedDepartureAirport: 'ATL',
+      selectedArrivalAirport: 'ATL',
+      selectedCompany: 'YX',
+      currentYearData: 2018,
+      currentTimeData: 0,
     };
   },
   created () {
     const promises = [
       d3.csv(urls.airports, typeAirport),
       d3.csv(urls.flights, typeFlight),
+      d3.csv(urls.comps, typeCompanys),
     ];
 
     Promise.all(promises).then((values) => {
-      let airports = values[0];
-      let flights = values[1];
+      airports = values[0];
+      flights = values[1];
+      airplaneCompany = values[2];
       this.airports = airports;
+      this.flights = flights;
+      this.airplaneCompany = airplaneCompany;
+      this.refreshMap();
     });
   },
   methods: {
+    refreshMap () {
+      var params = [
+        airports,
+        flights,
+        app1this.currentYearData,
+        app1this.currentTimeData,
+        this.isLineShow,
+        this.isAirplaneShow,
+        this.isAirportShow,
+        this.arrivalShow,
+        this.isDelayCount,
+        airplaneCompany,
+        this.selectedDepartureAirport,
+        this.selectedArrivalAirport,
+        this.selectedCompany,
+      ];
+      console.log('ZHANG: %c%s >>> ', 'background:#ff9912;color:white;font-size:20px', 'params', params);
+      processData(params);
+    },
   },
   computed: {
   },
   watch: {
+    isLineShow () {
+      this.refreshMap();
+    },
+    isAirplaneShow () {
+      this.refreshMap();
+    },
+    isAirportShow () {
+      this.refreshMap();
+    },
     arrivalShow () {
+      this.refreshMap();
     },
     isDelayCount () {
+      this.refreshMap();
     },
     selectedDepartureAirport () {
-
+      this.refreshMap();
+    },
+    selectedArrivalAirport () {
+      this.refreshMap();
+    },
+    selectedCompany () {
+      this.refreshMap();
     },
   },
 };
-Vue.createApp(app1).mount('#app1');
-Vue.createApp(app2).mount('#app2');
+var app1this = Vue.createApp(app1).mount('#app1');
+var app2this = Vue.createApp(app2).mount('#app2');
 //CHECK
 </script>
 </body>
