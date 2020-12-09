@@ -137,8 +137,12 @@ function processData(values) {
 
   // reset map to only include airports post-filter
   // airplaneCompany
-  flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
-  flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
+  if(selectedDepartureAirport!='all'){
+    flights = flights.filter(flight => flight.ORIGIN == selectedDepartureAirport);
+  }
+  if(selectedArrivalAirport!='all'){
+    flights = flights.filter(flight => flight.DEST == selectedArrivalAirport);
+  }
   // flights = flights.filter(flight => flight.OP_CARRIER == selectedCompany);
 
 
