@@ -472,9 +472,7 @@ function typeCompanys(comp) {
 }
 
 function typeAllairport(airport) {
-  return {
-    airport
-  };
+  return airport;
 }
 
 // calculates the distance between two nodes
