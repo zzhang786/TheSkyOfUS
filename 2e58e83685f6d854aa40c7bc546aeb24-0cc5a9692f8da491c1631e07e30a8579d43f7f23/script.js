@@ -77,6 +77,7 @@ function processData(values) {
   let selectedDepartureAirport = values[10];
   let selectedArrivalAirport = values[11];
   let selectedCompany = values[12];
+  let allairport = values[13];
 
   flights = flights.filter(flight => flight.FL_DATE == yearData);
   if (hourData%2 == 0){
@@ -88,7 +89,7 @@ function processData(values) {
   
 
   // convert airports array (pre filter) into map for fast lookup
-  let iata = new Map(airports.map(node => [node.iata, node]));
+  let iata = new Map(allairport.map(node => [node.iata, node]));
 
   // // remove airports out of bounds
   // let old = airports.length;

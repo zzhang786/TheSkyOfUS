@@ -91,7 +91,7 @@
         <h5>Select filter for route:</h5>
         Departure Airport<select v-model="selectedDepartureAirport" name="deptAirport" id="deptAirport">
         <option
-          v-for="item in airports"
+          v-for="item in allairport"
           :value="item.iata"
         >
           {{item.name}}
@@ -99,7 +99,7 @@
       </select>
         Arrival Airport<select v-model="selectedArrivalAirport" name="deptAirport" id="deptAirport">
         <option
-          v-for="item in airports"
+          v-for="item in allairport"
           :value="item.iata"
         >
           {{item.name}}
@@ -156,6 +156,7 @@ var app1 = {
 let airports
 let flights
 let airplaneCompany
+let allairport
 var app2 = {
   data () {
     return {
@@ -167,9 +168,10 @@ var app2 = {
       flights: [],
       airports: [],
       airplaneCompany: [],
-      selectedDepartureAirport: 'ATL',
-      selectedArrivalAirport: 'ATL',
-      selectedCompany: 'YX',
+      allairport: [],
+      selectedDepartureAirport: 'all',
+      selectedArrivalAirport: 'all',
+      selectedCompany: 'AA',
       currentYearData: 2018,
       currentTimeData: 0,
     };
@@ -186,9 +188,11 @@ var app2 = {
       airports = values[0];
       flights = values[1];
       airplaneCompany = values[2];
+      allairport = values[3];
       this.airports = airports;
       this.flights = flights;
       this.airplaneCompany = airplaneCompany;
+      this.allairport = allairport
       this.refreshMap();
     });
   },
@@ -208,6 +212,7 @@ var app2 = {
         this.selectedDepartureAirport,
         this.selectedArrivalAirport,
         this.selectedCompany,
+        allairport,
       ];
       console.log('ZHANG: %c%s >>> ', 'background:#ff9912;color:white;font-size:20px', 'params', params);
       processData(params);
