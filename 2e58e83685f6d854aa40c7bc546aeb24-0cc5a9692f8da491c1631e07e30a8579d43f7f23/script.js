@@ -13,7 +13,7 @@ const urls = {
 
   comps: 'data/comp.csv',
   
-  allairport: 'data/airport.csv'
+  allairport: 'data/allairport.csv'
 };
 
 
@@ -86,7 +86,9 @@ function processData(values) {
   else{
     flights = flights.filter(flight => flight.ARR_TIME >= hourData*50-20 && flight.DEP_TIME <= hourData*50-20);
   }
-  
+
+  test_flights = flights.slice(0, 10)
+  w_drawFlight(allairport, test_flights)
 
   // convert airports array (pre filter) into map for fast lookup
   let iata = new Map(allairport.map(node => [node.iata, node]));
@@ -314,7 +316,6 @@ function drawAirports(airports) {
 function drawFlights(airports, flights) {
   // break each flight between airports into multiple segments
   let bundle = generateSegments(airports, flights);
-  console.log(bundle);
   // https://github.com/d3/d3-shape#curveBundle
   let line = d3.line()
     .curve(d3.curveBundle)
@@ -476,8 +477,13 @@ function typeCompanys(comp) {
   };
 }
 
-function typeAllairport(airport) {
-  return airport;
+function typeAllairport(allairport) {
+  allairport.longitude = parseFloat(allairport.longitude);
+  allairport.latitude  = parseFloat(allairport.latitude);
+  const coords = projection([allairport.longitude, allairport.latitude]);
+  allairport.x = coords[0];
+  allairport.y = coords[1];
+  return allairport;
 }
 
 // calculates the distance between two nodes
@@ -488,3 +494,30 @@ function distance(source, target) {
 
   return Math.sqrt(dx2 + dy2);
 }
+
+function w_drawFlight(airports, flights) {
+  console.log("test_airports:", airports)
+  console.log("test_flights:", test_flights)
+
+  let bundle = {nodes: [], links: [], paths: []};
+
+  // make existing nodes fixed
+  bundle.nodes = nodes.map(function(d, i) {
+    d.fx = d.x;
+    d.fy = d.y;
+    return d;
+  });
+
+  let line = d3.line()
+    .curve(d3.curveBundle)
+    .x(airport => airport.x)
+    .y(airport => airport.y);
+
+  let links = g.flights.selectAll("path.flight")
+    .data(bundle.paths)
+    .enter()
+    .append("path")
+    .attr("d", line)
+    .attr("class", "flight")
+}
+
