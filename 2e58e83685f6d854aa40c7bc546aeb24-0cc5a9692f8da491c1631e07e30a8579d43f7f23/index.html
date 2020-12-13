@@ -21,6 +21,7 @@
   <script src="https://unpkg.com/d3-geo-voronoi@1"></script>
   <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css"
         rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.0.0/dist/echarts.min.js"></script>
   <script
     src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"></script>
   <link href="style.css" rel="stylesheet">
@@ -28,6 +29,13 @@
 
 <body data-new-gr-c-s-loaded="true">
 <div class="container-fluid p-5">
+  <h1><b><i>The Sky of US</i></b></h1>
+  <h5><i>A historical flight viewer</i></h5>
+  <h3>Our interactive visualization system contain a map with three layers: Airport delay, Flight routes, and Real-time location.
+   The platform allow user to track flight route base on different options choosing from Departure airport, Arrival airport,
+    Airplane Company options, year, and time.
+
+  </h3>
   <div class="row">
     <div class="col-8 pl-5">
       <div class="l_col h-80 d-inline-block">
@@ -42,13 +50,25 @@
         </svg>
       </div>
       <div class="l_col w-100 h-20 d-inline-block">
-        <div id="app1" class="d-flex justify-content-center my-4">
-          <h5 class='p-3'>Year: </h5>
-          <input type="range" v-model="currentYear" class="custom-range" id="customRange" min="2009" max="2018">
-          <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentYear}}</span>
-          <h5 class='p-3 time'>Time: </h5>
-          <input type="range" v-model="currentTime" class="custom-range" id="customRange" min="0" max="47">
-          <span class="font-weight-bold text-primary ml-2 valueSpan">{{(currentTime/2).toString()}}</span>
+        <div id="app1">
+          <div class="d-flex justify-content-center my-4">
+            <h5 class='p-3'>Year: </h5>
+            <input type="range" v-model="currentYear" class="custom-range" min="2009" max="2018">
+            <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentYear}}</span>
+            <h5 class='p-3 time'>Time: </h5>
+            <input type="range" v-model="currentTime" class="custom-range" min="0" max="47">
+            <span class="font-weight-bold text-primary ml-2 valueSpan">{{currentTimeShow}}</span>
+          </div>
+          <div>
+            <!--            <canvas ref="canvas"></canvas>-->
+            <div id="chart" style="width: 100%;height:600px;"></div>
+            <div>
+              <span class='p-3'>start time: {{chartStartTimeShow}}</span>
+              <input type="range" v-model="chartStartTime" class="custom-range" min="0" max="47">
+              <span class='p-3'>end time: {{chartEndTimeShow}}</span>
+              <input type="range" v-model="chartEndTime" class="custom-range" min="0" max="47">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -86,26 +106,26 @@
             Length of delayed time</label>
         </div>
       </div>
-      
+
       <div class="r_col h-40 p-2">
         <h5>Select filter for route:</h5>
-        Departure Airport<select v-model="selectedDepartureAirport" name="deptAirport" id="deptAirport">
+        Departure Airport<select v-model="selectedDepartureAirport" name="deptAirport">
         <option
           v-for="item in allairport"
-          :value="item.iata"
+          :value="item.airport"
         >
           {{item.name}}
         </option>
       </select>
-        Arrival Airport<select v-model="selectedArrivalAirport" name="deptAirport" id="deptAirport">
+        Arrival Airport<select v-model="selectedArrivalAirport" name="deptAirport">
         <option
           v-for="item in allairport"
-          :value="item.iata"
+          :value="item.airport"
         >
           {{item.name}}
         </option>
       </select>
-        Airplane Company<select v-model="selectedCompany" name="deptAirport" id="deptAirport">
+        Airplane Company<select v-model="selectedCompany" name="deptAirport">
         <option
           v-for="item in airplaneCompany"
           :value="item.companyName"
@@ -124,7 +144,91 @@ var app1 = {
     return {
       currentYearData: 2018,
       currentTimeData: 0,
+      chartStartTime: 0,
+      chartEndTime: 47,
+      airports: [],
+      taxiout_by_origin: [],
     };
+  },
+  created () {
+    Promise.all([
+      d3.csv(urls.allairport, (rec) => {
+        if (rec.name !== 'all') {
+          this.airports.push(rec);
+        }
+      }),
+      d3.csv('data/taxiout_by_origin.csv', (record) => {
+        record.DEP_TIME = parseInt(record.DEP_TIME);
+        record.FL_DATE = parseInt(record.FL_DATE);
+        record.TAXI_OUT = parseFloat(record.TAXI_OUT);
+        this.taxiout_by_origin.push(record);
+      }),
+    ]).then(() => {
+      this.barChart(this.airports, this.taxiout_by_origin);
+    });
+  },
+  methods: {
+    addColon (s) {
+      var arr = Array.from(s);
+      return arr.slice(0, 2).join('') + ':' + arr.slice(2).join('');
+    },
+    convertToTime (userInputTime) {
+      var c = userInputTime.toString();
+      if (c.endsWith('.5')) {
+        if (userInputTime < 10) {
+          c = '0' + c.slice(0, 1) + '30';
+        } else {
+          c = c.slice(0, 2) + '30';
+        }
+      } else {
+        if (userInputTime < 10) {
+          c = '0' + c + '00';
+        } else {
+          c = c.slice(0, 2) + '00';
+        }
+      }
+      return c;
+    },
+    barChart (airports, taxiout_by_origin) {
+      const airportsDict = {};
+      airports.forEach((item) => {
+        item.value = 0.0;
+        airportsDict[item.airport] = item;
+      });
+      var st = parseInt(this.convertToTime(this.chartStartTime / 2));
+      var et = parseInt(this.convertToTime(this.chartEndTime / 2));
+      taxiout_by_origin.forEach((item) => {
+        if (item.DEP_TIME >= st && item.DEP_TIME <= et) {
+          const taxiOut = parseFloat(item.TAXI_OUT);
+          if (taxiOut) {
+            airportsDict[item.ORIGIN].value += taxiOut;
+          }
+        }
+      });
+      const airportArray = Object.values(airportsDict);
+      // const labels = airportArray.map((item) => item.name);
+      const labels = airportArray.map((item) => item.airport);
+      const chartData = airportArray.map((item) => item.value);
+      var myChart = echarts.init(document.getElementById('chart'));
+      var option = {
+        title: {
+          text: 'Airports Data',
+        },
+        xAxis: {
+          data: labels,
+          axisLabel: {
+            interval: 0,
+            rotate: 90,
+          },
+        },
+        yAxis: {},
+        series: [{
+          type: 'bar',
+          data: chartData,
+        }],
+      };
+      myChart.setOption(option);
+    },
   },
   computed: {
     currentYear: {
@@ -143,20 +247,38 @@ var app1 = {
         this.currentTimeData = Number(newValue);
       },
     },
+    chartStartTimeShow () {
+      var s = this.convertToTime(this.chartStartTime / 2);
+      return this.addColon(s);
+    },
+    chartEndTimeShow () {
+      var s = this.convertToTime(this.chartEndTime / 2);
+      return this.addColon(s);
+    },
+    currentTimeShow () {
+      var s = this.convertToTime(this.currentTime / 2);
+      return this.addColon(s);
+    },
   },
   watch: {
-    currentTimeData() {
+    currentTimeData () {
       app2.methods.refreshMap.call(app2this);
     },
     currentYearData () {
       app2.methods.refreshMap.call(app2this);
     },
-  }
+    chartStartTime () {
+      this.barChart(this.airports, this.taxiout_by_origin);
+    },
+    chartEndTime () {
+      this.barChart(this.airports, this.taxiout_by_origin);
+    },
+  },
 };
-let airports
-let flights
-let airplaneCompany
-let allairport
+let airports;
+let flights;
+let airplaneCompany;
+let allairport;
 var app2 = {
   data () {
     return {
@@ -181,7 +303,7 @@ var app2 = {
       d3.csv(urls.airports, typeAirport),
       d3.csv(urls.flights, typeFlight),
       d3.csv(urls.comps, typeCompanys),
-      d3.csv(urls.allairport,typeAllairport),
+      d3.csv(urls.allairport, typeAllairport),
     ];
 
     Promise.all(promises).then((values) => {
@@ -192,7 +314,7 @@ var app2 = {
       this.airports = airports;
       this.flights = flights;
       this.airplaneCompany = airplaneCompany;
-      this.allairport = allairport
+      this.allairport = allairport;
       this.refreshMap();
     });
   },
@@ -218,8 +340,7 @@ var app2 = {
       processData(params);
     },
   },
-  computed: {
-  },
+  computed: {},
   watch: {
     isLineShow () {
       this.refreshMap();

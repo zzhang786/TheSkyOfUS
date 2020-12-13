@@ -12,7 +12,7 @@ const urls = {
     "data/top50_1125.csv",
 
   comps: 'data/comp.csv',
-  
+
   allairport: 'data/airport.csv'
 };
 
@@ -86,10 +86,10 @@ function processData(values) {
   else{
     flights = flights.filter(flight => flight.ARR_TIME >= hourData*50-20 && flight.DEP_TIME <= hourData*50-20);
   }
-  
+
 
   // convert airports array (pre filter) into map for fast lookup
-  let iata = new Map(allairport.map(node => [node.iata, node]));
+  let iata = new Map(allairport.map(node => [node.airport, node]));
 
   // // remove airports out of bounds
   // let old = airports.length;
