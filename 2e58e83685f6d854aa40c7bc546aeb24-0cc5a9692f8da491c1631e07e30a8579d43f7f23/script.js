@@ -93,6 +93,7 @@ function processData(values) {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   test_flights = flights.slice(0, 10)
   w_drawFlight(allairport, test_flights)
@@ -100,6 +101,16 @@ function processData(values) {
 
   // convert airports array (pre filter) into map for fast lookup
   let iata = new Map(allairport.map(node => [node.airport, node]));
+=======
+  // test_flights = flights.slice(0, 10)
+  // w_drawFlights(allairport, test_flights)
+  // w_drawAirplanes(allairport, test_flights, hourData);
+  w_drawFlights(allairport, flights)
+  w_drawAirplanes(allairport, flights, hourData);
+  // convert airports array (pre filter) into map for fast lookup
+  let iata = new Map(allairport.map(node => [node.iata, node]));
+  // let alliata = new Map(allairport.map(node => [node.iata, node]));
+>>>>>>> cd1f46dd152f1b5a7e94ff1408f8b79e30b3323a
 
   // // remove airports out of bounds
   // let old = airports.length;
@@ -181,14 +192,17 @@ function processData(values) {
 
   // console.log(flights);
   // done filtering flights can draw
-  if (isLineShow == true) {
-    drawFlights(airports, flights);
-  }
+  
 
-  // draw airplanes
-  if (isAirplaneShow ==true) {
-    drawAirplanes(airports, flights);
-  }
+  // if (isLineShow == true) {
+  //   w_drawFlights(airports, flights);
+  // }
+
+  // // draw airplanes
+  // if (isAirplaneShow ==true) {
+  //   w_drawAirplanes(airports, flights);
+  // }
+
 }
 
 
@@ -439,12 +453,6 @@ function generateSegments(nodes, links) {
   return bundle;
 }
 
-
-function drawAirplanes(airports, flights){
-  return;
-}
-
-
 // determines which states belong to the continental united states
 // https://gist.github.com/mbostock/4090846#file-us-state-names-tsv
 function isContinental(state) {
@@ -503,29 +511,61 @@ function distance(source, target) {
   return Math.sqrt(dx2 + dy2);
 }
 
-function w_drawFlight(airports, flights) {
+function w_drawFlights(airports, flights) {
+  // console.log("test_airports:", airports)
+  // console.log("test_flights:", test_flights)
+
+  for (let flight of flights){
+    AP_ORI = airports.find(o => o.airport === flight.ORIGIN)
+    AP_DES = airports.find(o => o.airport === flight.DEST)
+    g.flights.append("line")
+      // .data(flights)
+      .attr("x1", AP_ORI.x)
+      .attr("x2", AP_DES.x)
+      .attr("y1", AP_ORI.y)
+      .attr("y2", AP_DES.y)
+      .attr("stroke-width", 2)
+      .attr("stroke", "gray")
+  }
+}
+
+function w_drawAirplanes(airports, flights, hourData){
   console.log("test_airports:", airports)
-  console.log("test_flights:", test_flights)
+  console.log("test_flights:", flights)
+  console.log("hourData", hourData)
+  var current_time = parseInt(hourData/2)*100+parseInt(hourData%2)*30
 
-  let bundle = {nodes: [], links: [], paths: []};
+  for (let flight of flights){
+    AP_ORI = airports.find(o => o.airport === flight.ORIGIN)
+    AP_DES = airports.find(o => o.airport === flight.DEST)
+    DEGREE = Math.atan((AP_DES.y - AP_ORI.y) / (AP_DES.x - AP_ORI.x)) / Math.PI * 180
 
-  // make existing nodes fixed
-  bundle.nodes = nodes.map(function(d, i) {
-    d.fx = d.x;
-    d.fy = d.y;
-    return d;
-  });
+    TOTAL_MIN = time_distance_min(flight.DEP_TIME, flight.ARR_TIME)
+    PAST_MIN = time_distance_min(flight.DEP_TIME, current_time)
+    RATIO = PAST_MIN/TOTAL_MIN
+    console.log("TIME", TOTAL_MIN, PAST_MIN, current_time, flight.DEP_TIME, flight.ARR_TIME)
 
-  let line = d3.line()
-    .curve(d3.curveBundle)
-    .x(airport => airport.x)
-    .y(airport => airport.y);
+    AC_x = AP_ORI.x + (AP_DES.x - AP_ORI.x)*RATIO
+    AC_y = AP_ORI.y + (AP_DES.y - AP_ORI.y)*RATIO
 
-  let links = g.flights.selectAll("path.flight")
-    .data(bundle.paths)
-    .enter()
-    .append("path")
-    .attr("d", line)
-    .attr("class", "flight")
+    g.flights.append("text")
+      // .data(flights)
+      .attr("x", AC_x)
+      .attr("y", AC_y)
+      .style("font-size", "40")
+      // .attr("text-anchor", "middle")
+      .attr("dy", "15px")
+      .attr("dx", "-15px")
+      .text("\u2708")
+      .attr("transform", "rotate("+DEGREE+","+AC_x+","+AC_y+")")
+  }
+}
+
+function time_distance_min(start_time, end_time){
+  start_hour = parseInt(start_time/100)
+  start_min = parseInt(start_time%100)
+  end_hour = parseInt(end_time/100)
+  end_min = parseInt(end_time%100)
+  return (end_hour-start_hour)*60+(end_min-start_min)   
 }
 
